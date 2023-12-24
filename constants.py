@@ -20,10 +20,10 @@ class Knot: # Mixture of Note and Knock, also a word
     def __repr__(self) -> str:
         return f"KNOT {self.name}"
 
-RHYTHM_TRIPLET = Rhythm((1, 1), [1, 2, 4, 8])
-RHYTHM_QUAD = Rhythm((1, 1, 1), list(range(1, 7)))
-RHYTHM_OFF2 = Rhythm((2, 1), list(range(1, 7)))
-RHYTHM_OFF3 = Rhythm((1, 2), list(range(1, 7)))
+RHYTHM_TRIPLET = Rhythm((1, 1), [2, 4, 8, 16])
+RHYTHM_QUAD = Rhythm((1, 1, 1), [2 * i for i in range(1, 7)])
+RHYTHM_OFF2 = Rhythm((2, 1), [2 * i for i in range(1, 7)])
+RHYTHM_OFF3 = Rhythm((1, 2), [2 * i for i in range(1, 7)])
 
 KNOT_ONE3 = Knot(RHYTHM_TRIPLET, "one", 1, "one3")
 KNOT_SLIDE4 = Knot(RHYTHM_QUAD, "slide", 2, "slide4")

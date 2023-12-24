@@ -11,11 +11,9 @@ class Rope: # Knot가 될 수도 있는 무언가
 
     def __repr__(self) -> str:
         return f"""**
-KNOT: {self.knot}
-COUNT: {self.count}
-START: {self.start}
+{self.knot}
+COUNTS: {self.input_counts}
 RATING: {RATINGS[self.rating]}
-LENGTH: {self.length}
 
 """
         
@@ -79,14 +77,15 @@ class Map:
         for count in rope.input_counts:
             if count in self.combo_check:
                 self.combo_check[count][rope.rating] -= 1
-                if self.combo_check[count][rope.rating] == 0:
-                    if sum(self.combo_check[count][:self.combo_rating + 1]) == 0:
-                        print(count)
-                        self.combo_break()
-                        return
 
     def combo_break(self):
-        print("Ta-da! Combo Break!")
+        print(f"{RATINGS[self.combo_rating]}으로 {self.combo_count}개 이었습니다.")
+        self.combo_rating += 1
+        if self.combo_rating == 3:
+            self.combo_count = 0
+            self.combo_rating = 0
+            self.combo_check = {}
+            return
 
     def write_timeline(self, time_current: float):
         self.timeline = []
@@ -111,10 +110,16 @@ class Map:
                 break
         self.timeline = self.timeline[erase:]
 
+        for input_count, left_ropes in self.combo_check.items():
+            if sum(left_ropes[:self.combo_rating + 1]) == 0:
+                self.combo_break()
+
     def get_accepted(self):
         done: List[Rope] = []
         for rope in self.open:
             rope.apply(self.input_count)
+            if self.input_count in self.combo_check:
+                self.combo_check[self.input_count][rope.rating] += 1
             if rope.is_complete():
                 done.append(rope)
         done.sort(key=lambda x: (x.rating, x.knot.priority))
@@ -129,10 +134,10 @@ class Map:
                 accepted.append(rope)
                 accepted_idxs.append(idx)
         
+        print(accepted)
         return accepted, accepted_idxs
     
-    def control_accepted(self) -> bool:
-        accepted, accepted_idxs = self.get_accepted()
+    def control_accepted(self, accepted: List[Rope], accepted_idxs: List[int]) -> bool:
         is_accepted_exist = (accepted != [])
         for i, rope in enumerate(accepted):
             idx = accepted_idxs[i]
@@ -167,17 +172,14 @@ class Map:
     def apply(self, time_input: float):
         self.input_count += 1
         
-        is_accepted_exist = self.control_accepted()
+        accepted, accepted_idxs = self.get_accepted()
         self.write_alive(time_input)
+        is_accepted_exist = self.control_accepted(accepted, accepted_idxs)
         self.write_timeline(time_input)
         self.open = []
-        
-        # print(f"alive: {self.alive}")
-        print(f"open: {self.open}")
-        if is_accepted_exist:
-            print(self.deck)
-            print(self.deck_rating)
-        
-        # print(self.timeline)
 
-        print("---------------\n\n")
+        print(self.deck)
+        print(self.deck_rating)
+        print(self.combo_check)
+
+        print("----------\n\n")

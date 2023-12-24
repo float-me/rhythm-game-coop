@@ -36,15 +36,9 @@ time_initial = time.time() + latency / 1000
 map_p1 = Map()
 print(map_p1.deck)
 
-KEY_TIMING = [i / 4 for i in range(200)]
-key_count = 0
-
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
-    if time_current >= KEY_TIMING[key_count]:
-        pygame.event.post(pygame.event.Event(pygame.KEYDOWN))
-        key_count += 1
     map_p1.update(time_current)
 
     for event in pygame.event.get():
