@@ -46,7 +46,7 @@ while True:
             pygame.quit()
         if event.type == pygame.KEYDOWN:
             print(time_current)
-            map_p1.apply(time_current)
+            map_p1.on_input_at(time_current)
 
      # Update the display
     pygame.display.flip()

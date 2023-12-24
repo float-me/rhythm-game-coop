@@ -37,6 +37,11 @@ KNOTS = [KNOT_FREE3, KNOT_ONE3, KNOT_FREE4, KNOT_TRILL4, KNOT_TRILLOFF2, KNOT_TR
 
 RATINGS = ["Perfect", "Good", "Okay"]
 RATING_RULE = [1/8, 1/6, 1/4]
+RATING_COUNTS = 3
+assert RATING_COUNTS == len(RATINGS)
+
+DECK_SIZE = 4
+NEXT_SIZE = 5
 
 def random_pattern_picker():
     while True:

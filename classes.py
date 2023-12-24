@@ -34,14 +34,18 @@ RATING: {RATINGS[self.rating]}
 class Map:
     def __init__(self) -> None:
         self.count = 1
-        self.deck = [self.pick() for _ in range(3)]
-        self.nexts = [self.pick() for _ in range(5)]
-        self.deck_rating = [3, 3, 3]
+        self.deck = [self.pick() for _ in range(DECK_SIZE)]
+        self.nexts = [self.pick() for _ in range(NEXT_SIZE)]
+        self.deck_rating = [RATING_COUNTS] * DECK_SIZE
         self.combo_rating = 0
         self.combo_count = 0
         self.timeline: List[Tuple[float, Rope, bool]] = []
         self.alive: List[Rope] = []
         self.open: List[Rope] = []
+        self.done: List[Rope] = []
+        self.accept: List[Rope|None] = [None] * DECK_SIZE
+        self.finish: List[Rope|None] = [None] * DECK_SIZE
+        self.ignore_input_counts: List[int] = []
         self.input_count = 0
         self.combo_check: Dict[int, List[int]] = {}
     
@@ -51,7 +55,7 @@ class Map:
         return val
     
     def create_ropes(self, time_input: float, available_pattern: Set[Knot]):
-        for rating in range(3):
+        for rating in range(RATING_COUNTS):
             rating_rule = RATING_RULE[rating]
             for pattern in available_pattern:
                 for length in pattern.rhythm.length_available:
@@ -64,29 +68,33 @@ class Map:
                         )
                         if self.input_count in self.combo_check:
                             self.combo_check[self.input_count][rating] += 1
-                        else:
-                            self.combo_check[self.input_count] = [0, 0, 0]
+                        elif self.input_count not in self.ignore_input_counts:
+                            self.combo_check[self.input_count] = [0] * RATING_COUNTS
                             self.combo_check[self.input_count][rating] += 1
 
-    def kill(self, rope: Rope):
-        self.open.remove(rope)
+    def kill(self, rope: Rope, in_open: bool = True, break_combo: bool = True):
+        if in_open:
+            self.open.remove(rope)
         self.alive.remove(rope)
-        self.minus_combo_check(rope)
-    
-    def minus_combo_check(self, rope: Rope):
-        for count in rope.input_counts:
-            if count in self.combo_check:
-                self.combo_check[count][rope.rating] -= 1
+        for input_count in rope.input_counts:
+            if input_count in self.combo_check:
+                self.combo_check[input_count][rope.rating] -= 1
+                if break_combo:
+                    if sum(self.combo_check[input_count][:self.combo_rating + 1]) == 0:
+                        print(f"{input_count}에서 더 이상 이을 콤보가 없습니다.")
+                        self.combo_break()
 
     def combo_break(self):
         print(f"{RATINGS[self.combo_rating]}으로 {self.combo_count}개 이었습니다.")
         self.combo_rating += 1
-        if self.combo_rating == 3:
+        if self.combo_rating == RATING_COUNTS:
             self.combo_count = 0
             self.combo_rating = 0
             self.combo_check = {}
             return
-
+        
+        self.write_finish()
+        
     def write_timeline(self, time_current: float):
         self.timeline = []
         for rope in self.alive:
@@ -110,76 +118,71 @@ class Map:
                 break
         self.timeline = self.timeline[erase:]
 
-        for input_count, left_ropes in self.combo_check.items():
-            if sum(left_ropes[:self.combo_rating + 1]) == 0:
-                self.combo_break()
-
-    def get_accepted(self):
-        done: List[Rope] = []
+    def apply(self):
         for rope in self.open:
             rope.apply(self.input_count)
             if self.input_count in self.combo_check:
                 self.combo_check[self.input_count][rope.rating] += 1
             if rope.is_complete():
-                done.append(rope)
-        done.sort(key=lambda x: (x.rating, x.knot.priority))
-        accepted: List[Rope] = []
-        accepted_idxs: List[int] = []
+                self.done.append(rope)
+        self.open = []
+        self.done.sort(key=lambda x: (x.rating, x.knot.priority))
+
+    def write_accept(self):
         deck = self.deck[:]
-        for rope in done:
-            self.kill(rope)
+        for rope in self.done:
+            self.kill(rope, in_open=False, break_combo=False)
             if rope.knot in deck:
                 idx = deck.index(rope.knot)
                 deck[idx] = 0
-                accepted.append(rope)
-                accepted_idxs.append(idx)
-        
-        print(accepted)
-        return accepted, accepted_idxs
+                self.accept_rope(rope, idx)
+        self.done = []
     
-    def control_accepted(self, accepted: List[Rope], accepted_idxs: List[int]) -> bool:
-        is_accepted_exist = (accepted != [])
-        for i, rope in enumerate(accepted):
-            idx = accepted_idxs[i]
-            if rope.rating <= self.combo_rating:
-                for input_count in rope.input_counts:
-                    if input_count in self.combo_check:
-                        del self.combo_check[input_count]
-                self.deck[idx] = self.nexts[0]
-                self.deck_rating[idx] = 3
-                self.nexts = [*self.nexts[1:], self.pick()]
-                self.combo_count += 1
+    def write_finish(self):
+        for idx, rope in enumerate(self.accept):
+            if rope != None and rope.rating <= self.combo_rating:
+                self.finish_rope(rope, idx)
+    
+    def accept_rope(self, rope: Rope, idx: int):
+        self.accept[idx] = rope
+        self.deck_rating[idx] = rope.rating
+    
+    def finish_rope(self, rope: Rope, idx: int):
+        self.finish[idx] = rope
+        self.accept[idx] = None
+        for input_count in rope.input_counts:
+            if input_count in self.combo_check:
+                del self.combo_check[input_count]
             else:
-                self.deck_rating[idx] = rope.rating
-                for input_count in rope.input_counts:
-                    if input_count in self.combo_check:
-                        self.combo_check[input_count][rope.rating] = -1
+                self.ignore_input_counts.append(input_count)
+        self.deck[idx] = self.nexts[0]
+        self.deck_rating[idx] = RATING_COUNTS
+        self.nexts = [*self.nexts[1:], self.pick()]
+        self.combo_count += 1
 
-        return is_accepted_exist
+        print(f"I finished...\n{rope}\n!!!")
+        print("♡♡♡")
+        
+    def kill_ropes_not_in_deck(self):
+        to_kill = [rope for rope in self.alive if rope.knot not in self.deck]
+        for rope in to_kill:
+            self.kill(rope, in_open=False)
     
     def write_alive(self, time_input: float):
-        alive = []
-        for rope in self.alive:
-            if rope.knot in self.deck:
-                alive.append(rope)
-            else:
-                if rope in self.open:
-                    self.open.remove(rope)
-                    self.minus_combo_check(rope)
-        self.alive = alive
+        self.kill_ropes_not_in_deck()
         self.create_ropes(time_input, set(self.deck))
 
-    def apply(self, time_input: float):
+    def on_input_at(self, time_input: float):
         self.input_count += 1
         
-        accepted, accepted_idxs = self.get_accepted()
-        self.write_alive(time_input)
-        is_accepted_exist = self.control_accepted(accepted, accepted_idxs)
+        self.apply() # open의 각 rope에 입력이 들어왔음을 알리고, .done을 작성
+        self.write_accept() # .done을 바탕으로 .accept를 작성
+        self.write_finish() # .accept를 바탕으로 .finish를 작성
+
+        self.write_alive(time_input) # 위 작업에 따라 바뀐 덱을 반영해 .alive를 작성
+        
         self.write_timeline(time_input)
-        self.open = []
 
         print(self.deck)
-        print(self.deck_rating)
-        print(self.combo_check)
 
         print("----------\n\n")
