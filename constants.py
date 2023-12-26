@@ -43,6 +43,8 @@ assert RATING_COUNTS == len(RATINGS)
 DECK_SIZE = 4
 NEXT_SIZE = 5
 
+KEY_COUNTS = 4
+
 def random_pattern_picker():
     while True:
         patterns = KNOTS[:]

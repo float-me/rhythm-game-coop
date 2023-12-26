@@ -36,6 +36,16 @@ time_initial = time.time() + latency / 1000
 map_p1 = Map()
 print(map_p1.deck)
 
+def key_to_no(key):
+    if key == pygame.K_a:
+        return 1
+    elif key == pygame.K_s:
+        return 2
+    elif key == pygame.K_d:
+        return 3
+    elif key == pygame.K_f:
+        return 4
+
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
@@ -45,8 +55,9 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
         if event.type == pygame.KEYDOWN:
-            print(time_current)
-            map_p1.on_input_at(time_current)
+            if event.key in [pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_f]:
+                print(time_current)
+                map_p1.on_input_at(time_current, key_to_no(event.key))
 
      # Update the display
     pygame.display.flip()

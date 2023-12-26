@@ -3,11 +3,12 @@ from typing import Set, List, Dict
 import math
 
 class Rope: # Knot가 될 수도 있는 무언가
-    def __init__(self, start: int, knot: Knot, length: int, rating: int, input_count: int):
+    def __init__(self, start: int, knot: Knot, length: int, rating: int, input_count: int, key_no: int):
         self.start, self.knot, self.length, self.rating = start, knot, length, rating
         self.n = self.knot.rhythm.n
         self.count = 1
         self.input_counts = [input_count]
+        self.key_nos = [key_no]
 
     def __repr__(self) -> str:
         return f"""**
@@ -17,16 +18,37 @@ RATING: {RATINGS[self.rating]}
 
 """
         
-    def apply(self, input_count: int):
+    def apply(self, input_count: int, key_no):
         self.count += 1
         self.input_counts.append(input_count)
+        self.key_nos.append(key_no)
 
     @property
-    def interval(self):
+    def interval(self) -> Tuple[float, float]:
         beats = sum(self.knot.rhythm.ratio[:self.count])
         midpoint = (self.start + beats * self.length)/ RHYTHM_GRID
         distance = self.length * RATING_RULE[self.rating] / RHYTHM_GRID
         return (midpoint - distance, midpoint + distance)
+    
+    @property
+    def available_keys(self) -> List[int]:
+        all_keys = list(range(1, KEY_COUNTS + 1))
+        match self.knot.key_type:
+            case "free":
+                return all_keys
+            case "one":
+                return [self.key_nos[-1]]
+            case "slide":
+                if self.count == 1:
+                    my_keys = {self.key_nos[0] - 1, self.key_nos[0] + 1}
+                else:
+                    my_keys = 2 * self.key_nos[-1] - self.key_nos[-2]
+                return list(my_keys & set(all_keys))
+            case "trill":
+                if self.count == 1:
+                    return all_keys
+                else:
+                    return [self.key_nos[-2]]
     
     def is_complete(self) -> bool:
         return self.n == self.count
@@ -54,7 +76,7 @@ class Map:
         self.count += 1
         return val
     
-    def create_ropes(self, time_input: float, available_pattern: Set[Knot]):
+    def create_ropes(self, time_input: float, key_no: int, available_pattern: Set[Knot]):
         for rating in range(RATING_COUNTS):
             rating_rule = RATING_RULE[rating]
             for pattern in available_pattern:
@@ -64,7 +86,7 @@ class Map:
                     high = math.trunc(RHYTHM_GRID * (time_input + distance))
                     for start in range(low, high + 1):
                         self.alive.append(
-                            Rope(start, pattern, length, rating, self.input_count)
+                            Rope(start, pattern, length, rating, self.input_count, key_no)
                         )
                         if self.input_count in self.combo_check:
                             self.combo_check[self.input_count][rating] += 1
@@ -118,14 +140,19 @@ class Map:
                 break
         self.timeline = self.timeline[erase:]
 
-    def apply(self):
+    def apply(self, key_no: int):
+        applied: List[Rope] = []
         for rope in self.open:
-            rope.apply(self.input_count)
+            if key_no not in rope.available_keys:
+                continue
+            applied.append(rope)
+            rope.apply(self.input_count, key_no)
             if self.input_count in self.combo_check:
                 self.combo_check[self.input_count][rope.rating] += 1
             if rope.is_complete():
                 self.done.append(rope)
-        self.open = []
+        for rope in applied:
+            self.open.remove(rope)
         self.done.sort(key=lambda x: (x.rating, x.knot.priority))
 
     def write_accept(self):
@@ -168,18 +195,18 @@ class Map:
         for rope in to_kill:
             self.kill(rope, in_open=False)
     
-    def write_alive(self, time_input: float):
+    def write_alive(self, time_input: float, key_no: int):
         self.kill_ropes_not_in_deck()
-        self.create_ropes(time_input, set(self.deck))
+        self.create_ropes(time_input, key_no, set(self.deck))
 
-    def on_input_at(self, time_input: float):
+    def on_input_at(self, time_input: float, key_no: int):
         self.input_count += 1
         
-        self.apply() # open의 각 rope에 입력이 들어왔음을 알리고, .done을 작성
+        self.apply(key_no) # open의 각 rope에 입력이 들어왔음을 알리고, .done을 작성
         self.write_accept() # .done을 바탕으로 .accept를 작성
         self.write_finish() # .accept를 바탕으로 .finish를 작성
 
-        self.write_alive(time_input) # 위 작업에 따라 바뀐 덱을 반영해 .alive를 작성
+        self.write_alive(time_input, key_no) # 위 작업에 따라 바뀐 덱을 반영해 .alive를 작성
         
         self.write_timeline(time_input)
 
