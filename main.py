@@ -1,8 +1,9 @@
 import pygame
 import time
 from constants import *
-from classes import Rope, Map
+from classes import *
 from server import *
+from color import *
 
 # Initialize Pygame
 pygame.init()
@@ -10,6 +11,7 @@ pygame.init()
 # Set up display (not necessary for playing music, but Pygame initialization is required)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+drawing = Drawing(screen)
 pygame.display.set_caption("Pygame Music Player")
 
 # Initialize mixer
@@ -55,11 +57,14 @@ while True:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            pygame.quit()
+            exit()
         if event.type == pygame.KEYDOWN:
             if event.key in [pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_f]:
                 print(time_current)
                 map_p1.on_input_at(time_current, key_to_no(event.key))
+
+    screen.fill(WHITE)
+    drawing.draw("200,100,sample|400,100,sample")
 
      # Update the display
     pygame.display.flip()

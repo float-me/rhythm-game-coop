@@ -1,3 +1,4 @@
+import pygame
 from constants import *
 from typing import Set, List, Dict
 import math
@@ -213,3 +214,17 @@ class Map:
         print(self.deck)
 
         print("----------\n\n")
+
+
+class Drawing:
+    def __init__(self, screen:pygame.Surface):
+        self.screen = screen
+        self.imgs = {}
+        for i in ["sample"]:
+            self.imgs[i] = pygame.transform.scale_by(pygame.image.load("res/" + str(i) + ".png").convert(), 0.2)
+
+    def draw(self, drawing:str):
+        '''|x_pos,y_pos,img_name|형식으로 이미지 처리'''
+        for img in drawing.split("|"):
+            x, y, name = img.split(",")
+            self.screen.blit(self.imgs[name], (int(x), int(y)))
