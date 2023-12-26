@@ -2,6 +2,7 @@ import pygame
 import time
 from constants import *
 from classes import Rope, Map
+from server import *
 
 # Initialize Pygame
 pygame.init()
@@ -35,6 +36,7 @@ time_initial = time.time() + latency / 1000
 
 map_p1 = Map()
 print(map_p1.deck)
+
 
 def key_to_no(key):
     if key == pygame.K_a:
