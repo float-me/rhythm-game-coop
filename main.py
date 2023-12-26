@@ -12,7 +12,6 @@ pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 drawing = Drawing(screen)
-pygame.display.set_caption("Pygame Music Player")
 
 # Initialize mixer
 pygame.mixer.init()
@@ -31,6 +30,7 @@ pygame.mixer.music.play()
 
 clock = pygame.time.Clock()
 fps = 60
+pygame.display.set_caption("Pygame Music Player " + str(clock.get_fps()))
 
 latency = 0 # 레이턴시, ms 단위
 
@@ -49,11 +49,15 @@ def key_to_no(key):
         return 3
     elif key == pygame.K_f:
         return 4
+    
+server = Server()
+server.accept_client()
 
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
     map_p1.update(time_current)
+    server.handle_client()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -66,7 +70,7 @@ while True:
     screen.fill(WHITE)
     drawing.draw("200,100,sample|400,100,sample")
 
-     # Update the display
+    # Update the display
     pygame.display.flip()
 
     # Control the frame rate

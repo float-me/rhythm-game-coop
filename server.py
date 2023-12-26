@@ -14,7 +14,9 @@ class Server:
         self.server_socket.listen(1)
         print("서버가 클라이언트의 연결을 기다리고 있습니다.")
         self.client_socket, addr = self.server_socket.accept()
+        self.server_socket.setblocking(0)  # 비블로킹 모드로 설정
         print(f"{addr}에서 연결되었습니다.")
+
 
 
     def handle_client(self):
@@ -59,7 +61,8 @@ class Client:
             return None
 
     def close_connection(self):
-        self.socket.close()
+        if self.socket:
+            self.socket.close()
 
 
 if __name__ == "__main__":
