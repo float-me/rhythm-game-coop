@@ -226,24 +226,39 @@ class PlayerMap(Map):
     def set_game(self, game: 'TwoPlayerGame', position: int):
         self.game = game
         self.opponent = game.players[1 - position]
+        self.position = position
     
     def on_bar_change(self):
         self.hp = self.hp_pre
         return super().on_bar_change()
     
-    def damage_of(self, rope: Rope):
-        DAMAGE_RATE[self.combo_rating] * min(self.combo_count, COMBO_BONUS_LIMIT)
+    @property
+    def damage(self):
+        return DAMAGE_RATE[self.combo_rating] * min(self.combo_count, COMBO_BONUS_LIMIT)
 
     def finish_rope(self, rope: Rope, idx: int):
-        self.attack()
+        attacked = self.hp - self.hp_pre
+        if attacked >= self.damage:
+            self.hp_pre += self.damage
+        else:
+            self.hp_pre = self.hp
+            damage = self.damage - attacked
+            self.attack(damage)
         return super().finish_rope(rope, idx)
     
-    def attack(self, damage):
+    def attack(self, damage: int):
         self.opponent.hp_pre -= damage
 
 class TwoPlayerGame:
     def __init__(self, p1: PlayerMap, p2: PlayerMap) -> None:
         self.players = [p1, p2]
+    
+    def update(self, time_current: float):
+        for player in self.players:
+            player.update(time_current)
+    
+    def on_input_at(self, position: int, time_input: int, key_no: int):
+        self.players[position].on_input_at(time_input, key_no)
 
 class Particle:
     def __init__(self, x, y, color):

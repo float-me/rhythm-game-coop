@@ -60,9 +60,8 @@ latency = 0 # 레이턴시, ms 단위
 
 time_initial = time.time() + latency / 1000
 
-map_p1 = Map()
-print(map_p1.deck)
-
+map_p1, map_p2 = PlayerMap(), PlayerMap()
+game = TwoPlayerGame(map_p1, map_p2)
 
 def key_to_no(event):
     if IS_INPUT_DEVICE_MIDI:
@@ -77,15 +76,23 @@ def key_to_no(event):
     else:
         key = event.key
         if key == pygame.K_a:
-            return True, 1
+            return True, 1, 0
         elif key == pygame.K_s:
-            return True, 2
+            return True, 2, 0
         elif key == pygame.K_d:
-            return True, 3
+            return True, 3, 0
         elif key == pygame.K_f:
-            return True, 4
+            return True, 4, 0
+        elif key == pygame.K_h:
+            return True, 1, 1
+        elif key == pygame.K_j:
+            return True, 2, 1
+        elif key == pygame.K_k:
+            return True, 3, 1
+        elif key == pygame.K_l:
+            return True, 4, 1
         else:
-            return False, None
+            return False, None, None
 
 if IS_INPUT_DEVICE_MIDI:
     pygame.fastevent.init()
@@ -110,29 +117,29 @@ a = Animation([Img.imgs["sample"], Img.imgs["sample2"]])
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
-    map_p1.update(time_current)
+    game.update(time_current)
     server.handle_client()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
         if event.type == input_event_type:
-            appropriate, key_no = key_to_no(event)
+            appropriate, key_no, position = key_to_no(event)
             if appropriate:
-                # print(time_current)
-                map_p1.on_input_at(time_current, key_no)
-                mark = Mark(line_x, rectangle_y + line_length // 2, (0, 255, 0))
-                mark.create_particles()
-                shiny_effect_active = True
-                shiny_effect_start_time = time.time()
-                map_p1.marks.append(mark)
+                game.on_input_at(position, time_current, key_no)
+                if position == 0:
+                    mark = Mark(line_x, rectangle_y + line_length // 2, (0, 255, 0))
+                    mark.create_particles()
+                    shiny_effect_active = True
+                    shiny_effect_start_time = time.time()
+                    map_p1.marks.append(mark)
 
 
     # draw background
     screen.fill((255, 255, 255))
-    drawing.draw("200,100,sample|400,100,sample")
-    a.play(screen, 200, 300)
-    server.send_data("/200,100,sample|400,100,sample;")
+    # drawing.draw("200,100,sample|400,100,sample")
+    # a.play(screen, 200, 300)
+    # server.send_data("/200,100,sample|400,100,sample;")
     
     # Draw bordered rectangle
     pygame.draw.rect(screen, (0, 0, 0), (rectangle_x, rectangle_y, rectangle_width, rectangle_height), border_thickness)
