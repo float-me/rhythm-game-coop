@@ -227,6 +227,7 @@ class Drawing:
 
     def draw(self, drawing:str):
         '''|x_pos,y_pos,img_name|형식으로 이미지 처리'''
+        drawing = drawing[drawing.index("/")+1:drawing.index(";", drawing.index("/") + 1)]
         for img in drawing.split("|"):
             x, y, name = img.split(",")
             self.screen.blit(Img.imgs[name], (int(x), int(y)))
