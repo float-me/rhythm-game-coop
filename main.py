@@ -67,11 +67,20 @@ game = TwoPlayerGame(map_p1, map_p2)
 def key_to_no(event):
     if IS_INPUT_DEVICE_MIDI:
         if event.status == 145:
-            keys = [41, 43, 45, 47]
-            if event.data1 not in keys:
-                return False, None
+            keys_left_0 = [41, 43, 45, 47]
+            keys_right_0 = [59, 57, 55, 53]
+            keys_left_1 = [77, 79, 81, 83]
+            keys_right_1 = [95, 93, 91, 89]
+            if event.data1 in keys_left_0:
+                return True, keys_left_0.index(event.data1) + 1, 0
+            elif event.data1 in keys_right_0:
+                return True, keys_right_0.index(event.data1) + 1, 0
+            if event.data1 in keys_left_1:
+                return True, keys_left_1.index(event.data1) + 1, 1
+            elif event.data1 in keys_right_1:
+                return True, keys_right_1.index(event.data1) + 1, 1
             else:
-                return True, 1 + keys.index(event.data1)
+                return False, None
         else:
             return False, None
     else:

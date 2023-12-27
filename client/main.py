@@ -56,8 +56,8 @@ drawing = Drawing(screen)
 pygame.mixer.init()
 
 # Load music file
-music_file = "tracks/DEAF KEV - Invincible [NCS Release].mp3"
-pygame.mixer.music.load(music_file)
+# music_file = "tracks/DEAF KEV - Invincible [NCS Release].mp3"
+# pygame.mixer.music.load(music_file)
 bpm = 50
 
 # loading images
@@ -87,7 +87,7 @@ TIMER_EVENT = pygame.USEREVENT + 1
 beat_interval = 60 / bpm
 
 # Play the music
-pygame.mixer.music.play()
+# pygame.mixer.music.play()
 
 clock = pygame.time.Clock()
 fps = 60
@@ -96,32 +96,32 @@ latency = 0 # 레이턴시, ms 단위
 
 time_initial = time.time() + latency / 1000
 
-map_p1 = Map()
-print(map_p1.deck)
+# map_p1 = Map()
+# print(map_p1.deck)
 
 
-def key_to_no(event):
-    if IS_INPUT_DEVICE_MIDI:
-        if event.status == 145:
-            keys = [41, 43, 45, 47]
-            if event.data1 not in keys:
-                return False, None
-            else:
-                return True, 1 + keys.index(event.data1)
-        else:
-            return False, None
-    else:
-        key = event.key
-        if key == pygame.K_a:
-            return True, 1
-        elif key == pygame.K_s:
-            return True, 2
-        elif key == pygame.K_d:
-            return True, 3
-        elif key == pygame.K_f:
-            return True, 4
-        else:
-            return False, None
+# def key_to_no(event):
+#     if IS_INPUT_DEVICE_MIDI:
+#         if event.status == 145:
+#             keys = [41, 43, 45, 47]
+#             if event.data1 not in keys:
+#                 return False, None
+#             else:
+#                 return True, 1 + keys.index(event.data1)
+#         else:
+#             return False, None
+#     else:
+#         key = event.key
+#         if key == pygame.K_a:
+#             return True, 1
+#         elif key == pygame.K_s:
+#             return True, 2
+#         elif key == pygame.K_d:
+#             return True, 3
+#         elif key == pygame.K_f:
+#             return True, 4
+#         else:
+#             return False, None
 
 
 temp_combo_count = 0
@@ -129,12 +129,12 @@ combo_texts = []
     
 client = Client()
 
-a = Animation([Img.imgs["sample"], Img.imgs["sample2"]])
+# a = Animation([Img.imgs["sample"], Img.imgs["sample2"]])
 
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
-    map_p1.update(time_current)
+    # map_p1.update(time_current)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -226,14 +226,14 @@ while True:
     # Control the frame rate
     clock.tick(fps)
     
-    if IS_INPUT_DEVICE_MIDI:
-        if midi_input.poll():
-            midi_events = midi_input.read(10)
-            # convert them into pygame events.
-            midi_evs = pygame.midi.midis2events(midi_events, midi_input.device_id)
+    # if IS_INPUT_DEVICE_MIDI:
+    #     if midi_input.poll():
+    #         midi_events = midi_input.read(10)
+    #         # convert them into pygame events.
+    #         midi_evs = pygame.midi.midis2events(midi_events, midi_input.device_id)
 
-            for m_e in midi_evs:
-                event_post(m_e)
+    #         for m_e in midi_evs:
+    #             event_post(m_e)
 
 del midi_input
 pygame.midi.quit()
