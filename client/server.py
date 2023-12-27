@@ -57,8 +57,6 @@ class Client:
             ready_to_read, _, _ = select.select([self.socket], [], [], 0)
             if ready_to_read:
                 data = self.socket.recv(1024)
-                if data:
-                    print("데이터를 받았습니다.")
                 return data if data else None
         except Exception as e:
             print(f"오류 발생: {e}")

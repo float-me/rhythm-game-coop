@@ -114,8 +114,6 @@ combo_texts = []
     
 server = Server()
 
-a = Animation([Img.imgs["sample"], Img.imgs["sample2"]])
-
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
@@ -134,7 +132,6 @@ while True:
                     shiny_effect_active = True
                     shiny_effect_start_time = time.time()
                     map_p1.marks.append(mark)
-                    map_p2.marks.append(mark)
 
 
     # draw background
@@ -142,8 +139,10 @@ while True:
 
     server.handle_client()
     obj = pickle.dumps(map_p2)
-    server.send_data(b";"+obj+b";")
-    print("데이터 보냄2")
+    try:
+        server.send_data(b":"+obj+b";")
+    except:
+        pass
     
     # Draw bordered rectangle
     pygame.draw.rect(screen, (0, 0, 0), (rectangle_x, rectangle_y, rectangle_width, rectangle_height), border_thickness)

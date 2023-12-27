@@ -56,7 +56,7 @@ beat_interval = 60 / bpm
 pygame.mixer.music.play()
 
 clock = pygame.time.Clock()
-fps = 240
+fps = 60
 
 latency = 0 # 레이턴시, ms 단위
 
@@ -95,6 +95,14 @@ def key_to_no(event):
             return True, 4, 1
         else:
             return False, None, None
+        
+def find_second_index(string, value):
+    indices = [i for i, c in enumerate(string) if c == value]
+    indices.sort()
+    try:
+        return indices[-2]
+    except:
+        return indices[0]
 
 if IS_INPUT_DEVICE_MIDI:
     pygame.fastevent.init()
@@ -113,6 +121,7 @@ temp_combo_count = 0
 combo_texts = []
     
 client = Client()
+req = b""
 
 a = Animation([Img.imgs["sample"], Img.imgs["sample2"]])
 
@@ -139,11 +148,13 @@ while True:
     # draw background
     screen.fill((255, 255, 255))
     data = client.receive_data()
-    print(data)
     if data is not None:
+        req += data
         try:
-            date = data[data.index(b";")+1:data.index(b";", data.index(b";")+1)]
-            map_p1 = pickle.loads(data)
+            first = find_second_index(req, b":")
+            last = req.index(b";", first + 1)
+            obj = req[first+1,last]
+            map_p1 = pickle.loads(obj)
         except:
             pass
     
