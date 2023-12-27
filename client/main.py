@@ -128,20 +128,9 @@ req = b""
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
-    game.update(time_current)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-        if event.type == input_event_type:
-            appropriate, key_no, position = key_to_no(event)
-            if appropriate:
-                game.on_input_at(position, time_current, key_no)
-                if position == 0:
-                    mark = Mark(line_x, rectangle_y + line_length // 2, (0, 255, 0))
-                    mark.create_particles()
-                    shiny_effect_active = True
-                    shiny_effect_start_time = time.time()
-                    map_p1.marks.append(mark)
 
 
     # draw background
@@ -150,16 +139,13 @@ while True:
     if data is not None:
         req += data
     try:
-        first = find_second_index(req, b":")
+        first = find_second_index(req, ord(":"))
         last = req.index(b";", first + 1)
-        obj = req[first+1,last]
-        first = find_second_index(req, b"@")
-        last = req.index(b"#", first + 1)
-        obj2 = req[first+1,last]
+        obj = req[first+1:last]
         map_p1 = pickle.loads(obj)
-        game = pickle.loads(obj2)
-    except:
-        pass
+        print(1)
+    except Exception as e:
+        print(e)
     
     # Draw bordered rectangle
     pygame.draw.rect(screen, (0, 0, 0), (rectangle_x, rectangle_y, rectangle_width, rectangle_height), border_thickness)
