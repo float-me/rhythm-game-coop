@@ -11,6 +11,7 @@ pygame.init()
 # Set up display (not necessary for playing music, but Pygame initialization is required)
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+# 이미지 로딩
 Img()
 drawing = Drawing(screen)
 

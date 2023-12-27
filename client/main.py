@@ -9,7 +9,7 @@ from color import *
 class Render:
     def __init__(self):
         pygame.init()
-        self.RES = self.WIDTH, self.HEIGHT = SCREEN_HEIGHT, SCREEN_HEIGHT
+        self.RES = self.WIDTH, self.HEIGHT = SCREEN_WIDTH, SCREEN_HEIGHT
         self.FPS = 60
         self.screen = pygame.display.set_mode(self.RES)
         self.drawing = Drawing(self.screen)
