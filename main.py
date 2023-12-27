@@ -131,8 +131,8 @@ while True:
 
     # draw background
     screen.fill((255, 255, 255))
-    drawing.draw("200,100,sample|400,100,sample")
-    a.play(screen, 200, 300)
+    # drawing.draw("200,100,sample|400,100,sample")
+    # a.play(screen, 200, 300)
     server.send_data("/200,100,sample|400,100,sample;")
     
     # Draw bordered rectangle
