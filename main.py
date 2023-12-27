@@ -151,8 +151,10 @@ while True:
 
     server.handle_client()
     obj = pickle.dumps(map_p2)
+    obj2 = pickle.dumps(game)
     try:
         server.send_data(b":"+obj+b";")
+        server.send_data(b"@"+obj2+b"#")
     except:
         pass
     

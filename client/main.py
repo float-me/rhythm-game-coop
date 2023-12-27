@@ -62,7 +62,6 @@ latency = 0 # 레이턴시, ms 단위
 
 time_initial = time.time() + latency / 1000
 
-<<<<<<< HEAD
 map_p1, map_p2 = PlayerMap(), PlayerMap()
 game = TwoPlayerGame(map_p1, map_p2)
 
@@ -104,34 +103,6 @@ def find_second_index(string, value):
         return indices[-2]
     except:
         return indices[0]
-=======
-# map_p1 = Map()
-# print(map_p1.deck)
-
-
-# def key_to_no(event):
-#     if IS_INPUT_DEVICE_MIDI:
-#         if event.status == 145:
-#             keys = [41, 43, 45, 47]
-#             if event.data1 not in keys:
-#                 return False, None
-#             else:
-#                 return True, 1 + keys.index(event.data1)
-#         else:
-#             return False, None
-#     else:
-#         key = event.key
-#         if key == pygame.K_a:
-#             return True, 1
-#         elif key == pygame.K_s:
-#             return True, 2
-#         elif key == pygame.K_d:
-#             return True, 3
-#         elif key == pygame.K_f:
-#             return True, 4
-#         else:
-#             return False, None
->>>>>>> 998494aea862d241db6dbb9d032f94cb44fc1378
 
 if IS_INPUT_DEVICE_MIDI:
     pygame.fastevent.init()
@@ -157,12 +128,7 @@ req = b""
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
-<<<<<<< HEAD
     game.update(time_current)
-=======
-    # map_p1.update(time_current)
->>>>>>> 998494aea862d241db6dbb9d032f94cb44fc1378
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -183,13 +149,17 @@ while True:
     data = client.receive_data()
     if data is not None:
         req += data
-        try:
-            first = find_second_index(req, b":")
-            last = req.index(b";", first + 1)
-            obj = req[first+1,last]
-            map_p1 = pickle.loads(obj)
-        except:
-            pass
+    try:
+        first = find_second_index(req, b":")
+        last = req.index(b";", first + 1)
+        obj = req[first+1,last]
+        first = find_second_index(req, b"@")
+        last = req.index(b"#", first + 1)
+        obj2 = req[first+1,last]
+        map_p1 = pickle.loads(obj)
+        game = pickle.loads(obj2)
+    except:
+        pass
     
     # Draw bordered rectangle
     pygame.draw.rect(screen, (0, 0, 0), (rectangle_x, rectangle_y, rectangle_width, rectangle_height), border_thickness)
