@@ -237,6 +237,7 @@ class PlayerMap(Map):
         return DAMAGE_RATE[self.combo_rating] * min(self.combo_count, COMBO_BONUS_LIMIT)
 
     def finish_rope(self, rope: Rope, idx: int):
+        super().finish_rope(rope, idx)
         attacked = self.hp - self.hp_pre
         if attacked >= self.damage:
             self.hp_pre += self.damage
@@ -244,7 +245,6 @@ class PlayerMap(Map):
             self.hp_pre = self.hp
             damage = self.damage - attacked
             self.attack(damage)
-        return super().finish_rope(rope, idx)
     
     def attack(self, damage: int):
         self.opponent.hp_pre -= damage
@@ -252,6 +252,8 @@ class PlayerMap(Map):
 class TwoPlayerGame:
     def __init__(self, p1: PlayerMap, p2: PlayerMap) -> None:
         self.players = [p1, p2]
+        p1.set_game(self, 0)
+        p2.set_game(self, 1)
     
     def update(self, time_current: float):
         for player in self.players:
