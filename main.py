@@ -132,8 +132,9 @@ while True:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            del midi_input
-            pygame.midi.quit()
+            if IS_INPUT_DEVICE_MIDI:
+                del midi_input
+                pygame.midi.quit()
             pygame.quit()
         if event.type == input_event_type:
             appropriate, key_no, position = key_to_no(event)
