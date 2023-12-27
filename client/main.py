@@ -1,46 +1,12 @@
 import pygame
-import socket
-import select
+import pygame.midi
 import time
 from constants import *
 from classes import *
+from server import *
 from color import *
-
-class Client:
-    def __init__(self, host='127.0.0.1', port=12345):
-        self.host = host
-        self.port = port
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connect_to_server()
-        self.socket.setblocking(0)  # 소켓을 비블로킹 모드로 설정
-
-    def connect_to_server(self):
-        self.socket.connect((self.host, self.port))
-
-    def send_data(self, data:str):
-        try:
-            self.socket.sendall(data.encode())
-            return 1
-        except:
-            self.close_connection()
-            return 0
-
-    def receive_data(self):
-        try:
-            ready_to_read, _, _ = select.select([self.socket], [], [], 0)
-            if ready_to_read:
-                data = self.socket.recv(1024)
-                if data:
-                    print(data.decode())
-                return data.decode() if data else None
-        except Exception as e:
-            print(f"오류 발생: {e}")
-            return None
-
-    def close_connection(self):
-        self.socket.close()
-
-
+from midi import _print_device_info
+import pickle
 
 # Initialize Pygame
 pygame.init()
@@ -90,15 +56,14 @@ beat_interval = 60 / bpm
 pygame.mixer.music.play()
 
 clock = pygame.time.Clock()
-fps = 60
+fps = 240
 
 latency = 0 # 레이턴시, ms 단위
 
 time_initial = time.time() + latency / 1000
 
-map_p1 = Map()
-print(map_p1.deck)
-
+map_p1, map_p2 = PlayerMap(), PlayerMap()
+game = TwoPlayerGame(map_p1, map_p2)
 
 def key_to_no(event):
     if IS_INPUT_DEVICE_MIDI:
@@ -113,16 +78,36 @@ def key_to_no(event):
     else:
         key = event.key
         if key == pygame.K_a:
-            return True, 1
+            return True, 1, 0
         elif key == pygame.K_s:
-            return True, 2
+            return True, 2, 0
         elif key == pygame.K_d:
-            return True, 3
+            return True, 3, 0
         elif key == pygame.K_f:
-            return True, 4
+            return True, 4, 0
+        elif key == pygame.K_h:
+            return True, 1, 1
+        elif key == pygame.K_j:
+            return True, 2, 1
+        elif key == pygame.K_k:
+            return True, 3, 1
+        elif key == pygame.K_l:
+            return True, 4, 1
         else:
-            return False, None
+            return False, None, None
 
+if IS_INPUT_DEVICE_MIDI:
+    pygame.fastevent.init()
+    event_get = pygame.fastevent.get
+    event_post = pygame.fastevent.post
+    pygame.midi.init()
+    _print_device_info()
+
+    input_id = pygame.midi.get_default_input_id()
+
+    print("using input_id :%s:" % input_id)
+    midi_input = pygame.midi.Input(input_id)
+input_event_type = pygame.midi.MIDIIN if IS_INPUT_DEVICE_MIDI else pygame.KEYDOWN
 
 temp_combo_count = 0
 combo_texts = []
@@ -134,27 +119,33 @@ a = Animation([Img.imgs["sample"], Img.imgs["sample2"]])
 # Main loop (to keep the program running while the music plays)
 while True:
     time_current = (time.time() - time_initial)/beat_interval
-    map_p1.update(time_current)
+    game.update(time_current)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-        # if event.type == input_event_type:
-        #     appropriate, key_no = key_to_no(event)
-        #     if appropriate:
-        #         # print(time_current)
-        #         map_p1.on_input_at(time_current, key_no)
-        #         mark = Mark(line_x, rectangle_y + line_length // 2, (0, 255, 0))
-        #         mark.create_particles()
-        #         shiny_effect_active = True
-        #         shiny_effect_start_time = time.time()
-        #         map_p1.marks.append(mark)
+        if event.type == input_event_type:
+            appropriate, key_no, position = key_to_no(event)
+            if appropriate:
+                game.on_input_at(position, time_current, key_no)
+                if position == 0:
+                    mark = Mark(line_x, rectangle_y + line_length // 2, (0, 255, 0))
+                    mark.create_particles()
+                    shiny_effect_active = True
+                    shiny_effect_start_time = time.time()
+                    map_p1.marks.append(mark)
 
 
     # draw background
     screen.fill((255, 255, 255))
     data = client.receive_data()
     print(data)
+    if data is not None:
+        try:
+            date = data[data.index(b";")+1:data.index(b";", data.index(b";")+1)]
+            map_p1 = pickle.loads(data)
+        except:
+            pass
     
     # Draw bordered rectangle
     pygame.draw.rect(screen, (0, 0, 0), (rectangle_x, rectangle_y, rectangle_width, rectangle_height), border_thickness)

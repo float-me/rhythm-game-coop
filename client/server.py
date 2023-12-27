@@ -19,13 +19,13 @@ class Server:
         if ready_to_read:
             data = self.client_socket.recv(1024)
             if data:
-                return data
+                print("데이터를 받았습니다.")
             else:
                 print("클라이언트로부터 연결이 끊겼습니다.")
                 self.close_connection()
 
     def send_data(self, data:str):
-        self.client_socket.sendall(data)
+        self.client_socket.sendall(data.encode())
 
     def close_connection(self):
         if self.client_socket:
@@ -58,8 +58,8 @@ class Client:
             if ready_to_read:
                 data = self.socket.recv(1024)
                 if data:
-                    print(data.decode())
-                return data.decode() if data else None
+                    print("데이터를 받았습니다.")
+                return data if data else None
         except Exception as e:
             print(f"오류 발생: {e}")
             return None

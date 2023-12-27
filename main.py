@@ -6,6 +6,7 @@ from classes import *
 from server import *
 from color import *
 from midi import _print_device_info
+import pickle
 
 # Initialize Pygame
 pygame.init()
@@ -119,7 +120,6 @@ a = Animation([Img.imgs["sample"], Img.imgs["sample2"]])
 while True:
     time_current = (time.time() - time_initial)/beat_interval
     game.update(time_current)
-    server.handle_client()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -134,13 +134,16 @@ while True:
                     shiny_effect_active = True
                     shiny_effect_start_time = time.time()
                     map_p1.marks.append(mark)
+                    map_p2.marks.append(mark)
 
 
     # draw background
     screen.fill((255, 255, 255))
-    # drawing.draw("200,100,sample|400,100,sample")
-    # a.play(screen, 200, 300)
-    # server.send_data("/200,100,sample|400,100,sample;")
+
+    server.handle_client()
+    obj = pickle.dumps(map_p2)
+    server.send_data(b";"+obj+b";")
+    print("데이터 보냄2")
     
     # Draw bordered rectangle
     pygame.draw.rect(screen, (0, 0, 0), (rectangle_x, rectangle_y, rectangle_width, rectangle_height), border_thickness)
